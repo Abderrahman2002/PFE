@@ -1,25 +1,34 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Lock, LogIn, Mail, Key } from 'lucide-react';
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
-  
+
     try {
       const response = await axios.post('http://localhost:8000/api/login', {
         email,
         password,
       });
-  
-      localStorage.setItem('token', response.data.token);
-      navigate('/dashboard');
+
+      // Store the token in localStorage
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+
+        // Redirect to the intended page or dashboard
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from, { replace: true });
+      } else {
+        setMessage('Token missing in response');
+      }
     } catch (error) {
       setMessage(error.response?.data?.message || 'Login failed');
     }
