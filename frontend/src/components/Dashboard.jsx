@@ -6,6 +6,8 @@ import { Users, Package, DollarSign, BarChart } from 'lucide-react'; // Import a
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,18 +16,58 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/dashboard', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.get('http://localhost:9000/api/dashboard', {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
-      setDashboardData(response.data);
+
+      setDashboardData(response.data); // Use setDashboardData consistently
+      setError(null); // Clear any previous errors
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      localStorage.removeItem('token');
-      navigate('/login');
+      console.error("Error fetching dashboard data:", error);
+      setError(error);
+
+      if (error.response?.status === 401) {
+        // Token is invalid or expired, redirect to login
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false); // Set loading to false after the request completes
     }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse space-y-6">
+            <div className="h-6 bg-gray-200 rounded-lg w-3/4"></div>
+            <div className="h-6 bg-gray-200 rounded-lg w-1/2"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-red-500 text-lg">
+            Error fetching dashboard data. Please try again.
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -78,14 +120,6 @@ const Dashboard = () => {
         <div className="mt-8 bg-white rounded-2xl shadow-lg">
           <div className="p-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activity</h2>
             {dashboardData ? (
               <div className="space-y-6">
                 <p className="text-gray-600 text-lg">{dashboardData.message}</p>
@@ -98,7 +132,6 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          
         </div>
       </div>
     </Layout>

@@ -9,6 +9,7 @@ import Analytics from './components/Analytics';
 import SettingsPage from './components/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoadingScreen from './components/LoadingScreen';
+import ResetPassword from './components/ResetPassword';
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -91,6 +92,7 @@ const App = () => {
               <Navigate to="/login" replace />
           } 
         />
+            <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

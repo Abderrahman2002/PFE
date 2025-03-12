@@ -1,31 +1,27 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 import { User, Lock, LogIn, Mail, Key } from 'lucide-react';
 
 function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     try {
-      const response = await axios.post('http://localhost:8000/api/login', {
+      const response = await axios.post('http://localhost:9000/api/login', {
         email,
         password,
       });
-
-      // Store the token in localStorage
+  
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-
-        // Redirect to the intended page or dashboard
-        const from = location.state?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        navigate('/dashboard');
       } else {
         setMessage('Token missing in response');
       }
@@ -33,7 +29,6 @@ function Login() {
       setMessage(error.response?.data?.message || 'Login failed');
     }
   };
-
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl flex overflow-hidden">
@@ -98,6 +93,16 @@ function Login() {
               Sign In
             </button>
           </form>
+
+          {/* Forgot Password Link */}
+          <div className="mt-6 text-center">
+            <Link
+              to="/reset-password"
+              className="text-blue-600 hover:text-blue-700 font-semibold"
+            >
+              Forgot your password?
+            </Link>
+          </div>
 
           {message && (
             <div className="mt-6 p-4 bg-red-100 text-red-700 rounded-xl text-base">
